@@ -1,0 +1,224 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    text-align: center;
+}
+
+.box {
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.main-btn, .register-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 10px;
+    border: none;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.main-btn:hover, .register-btn:hover {
+    background-color: #0056b3;
+}
+
+.form-container {
+    margin-top: 20px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+form label {
+    margin-top: 10px;
+}
+
+form input {
+    margin: 5px;
+    padding: 8px;
+    width: 80%;
+}
+
+form button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    border: none;
+    background-color: #28a745;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+form button:hover {
+    background-color: #218838;
+}
+
+
+/* General reset for margins and paddings */
+* 
+
+/* Body styling */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #f4f4f4;
+}
+
+/* Header styling */
+.header {
+    background-color: #004080; /* Plava boja pozadine */
+    padding: 10px 20px;
+    position: fixed; /* Fiksira header na vrh */
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; /* Osigurava da header bude iznad drugih elemenata */
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px; /* Maksimalna širina */
+    margin: 0 auto; /* Centriranje unutar širine */
+    padding: 0 20px;
+}
+
+.header-logo img {
+    height: 50px; /* Visina loga */
+}
+
+.header-info {
+    display: flex;
+    align-items: center;
+    color: #ffffff; /* Bijela boja teksta */
+}
+
+.header-info span {
+    margin-right: 20px; /* Razmak između imena i dugmeta */
+    font-size: 16px;
+}
+
+.header-info button {
+    background-color: #ffffff; /* Bijela boja dugmeta */
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.header-info button:hover {
+    background-color: #f0f0f0; /* Svijetla boja pozadine pri hoveru */
+}
+
+/* Main content styling */
+.container {
+    text-align: center;
+    padding-top: 70px; /* Razmak za header */
+}
+
+
+/* Styling for the gray box */
+.gray-box {
+    background-color: #e0e0e0; /* Siva boja pozadine */
+    padding: 40px; /* Povećana visina */
+    display: flex;
+    align-items: center;
+    width: 100vw; /* Postavlja širinu na 100% vidljivog prozora */
+    max-width: none; /* Uklanja ograničenje maksimalne širine */
+    box-sizing: border-box; /* Uključuje padding u ukupnu širinu */
+    transform: translateY(-350px); /* Pomak prema gore */
+}
+
+
+.gray-box img {
+    width: 400px; /* Povećana širina slike */
+    height: auto; /* Održava omjer slike */
+    margin-right: 20px; /* Razmak između slike i teksta */
+}
+
+.gray-box .text {
+    font-size: 18px; /* Povećana veličina fonta za tekst */
+    color: #333; /* Tamno siva boja teksta */
+}
+
+
+
+#map {
+    width: 100%;
+    height: 400px;
+}
+
+#car-icon {
+    width: 50px;
+    height: 50px;
+    background: url('https://img.icons8.com/ios/50/car.png') no-repeat center center;
+    background-size: cover;
+}
+
+.outline-box {
+    border: 2px solid #007bff; /* Plavi okvir */
+    padding: 20px;
+    margin: 20px auto; /* Centriranje sa automatskim marginama sa leve i desne strane */
+    border-radius: 10px;
+    background-color: #fff;
+    width: 60%; /* Širina kutije je 60% širine roditeljskog elementa */
+}
+
+
+
+.outline-box h2, .outline-box h3 {
+    margin: 0 0 10px;
+}
+
+.route-box {
+    margin-top: 10px;
+}
+
+.route-box label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.route-box input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#continue-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    border: none;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#continue-button:hover {
+    background-color: #0056b3;
+}
+
+#drive-selection {
+    margin-top: 20px;
+}
+

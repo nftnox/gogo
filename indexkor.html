@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index Korisnik</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Firebase App (osnovni SDK) -->
+<!-- Firebase App (core) SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js"></script>
+<!-- Firebase Firestore SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js"></script>
+
+    
+</head>
+<body>
+    <header class="header">
+        <div class="header-logo">
+            <img src="logo.png" alt="Logo">
+        </div>
+        <div class="header-info">
+            <span id="userActions">
+                <span id="userName"></span>
+                <button id="logoutBtn" style="display: none;">Odjavi se</button>
+                <button id="loginBtn" style="display: none;">Prijavi se</button>
+                <button id="registerBtn" style="display: none;">Registruj se</button>
+            </span>
+        </div>
+    </header>
+
+    <!-- Modal za prijavu -->
+    <div id="loginModal" style="display: none;">
+        <div id="loginModalContent">
+            <span id="closeModal" style="cursor: pointer;">&times;</span>
+            <h2>Prijavi se</h2>
+            <form id="modalLoginForm">
+                <label for="modalLoginName">Ime i Prezime</label>
+                <input type="text" id="modalLoginName" required>
+                <label for="modalLoginPassword">Šifra</label>
+                <input type="password" id="modalLoginPassword" required>
+                <button type="submit">Prijavi se</button>
+            </form>
+        </div>
+    </div>
+    <div class="container">
+        <!-- Gray Box -->
+        <div class="gray-box">
+            <img src="images/online-ordering-taxi-car-rent-and-sharing-using-service-mobile-application-png.webp" alt="Sample Image">
+            <div class="text">
+                <h2>Naslov Teksta</h2>
+                <p>Ovo je neki tekst koji ide desno od slike. Možeš ovdje dodati više informacija, opis ili bilo šta drugo što želiš prikazati.</p>
+            </div>
+        </div>
+        
+        <!-- Outline box for location input -->
+        <div class="outline-box">
+            <h2>Unesi lokaciju preuzimanja</h2>
+            <button id="open-map">Otvorite mapu</button>
+            <div id="map-container" style="display:none;">
+                <div id="map"></div>
+                <div id="drive-selection">
+                    <div id="car-icon"></div>
+                    <p id="distance">Udaljenost: </p>
+                    <p id="duration">Trajanje puta: </p>
+                    <p id="price">Cijena puta: </p>
+                    <p id="departure-time-date">Vrijeme polaska i datum: </p>
+                    <button id="reserve-btn" style="display:none;">Rezerviši</button>
+                </div>
+            </div>
+            
+            
+            <div class="outline-box">
+                <h3>Planirajte svoj put</h3>
+                <div class="route-box">
+                    <label for="pickup-location">Mjesto preuzimanja</label>
+                    <input type="text" id="pickup-location" placeholder="Unesite adresu preuzimanja">
+                </div>
+                <div class="route-box">
+                    <label for="destination">Gdje idete?</label>
+                    <input type="text" id="destination" placeholder="Unesite odredište">
+                </div>
+                <div class="route-box">
+                    <label for="departure-date">Datum polaska</label>
+                    <input type="text" id="departure-date" placeholder="dd.mm.yyyy" pattern="\d{2}/\d{2}/\d{4}">
+                </div>
+                <div class="route-box">
+                    <label for="departure-time">Vrijeme polaska</label>
+                    <input type="time" id="departure-time" step="60"> <!-- steps in seconds -->
+                </div>
+                <button id="continue-btn" style="display:none;">Nastavi</button>
+            </div>
+        </div>
+        
+        
+
+
+        
+       <!-- Firebase SDKs for Firebase products that you want to use -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyCMVaXV5cs-AISEpLRekEm_Rg-spQxadu4",
+      authDomain: "gogo-54679.firebaseapp.com",
+      projectId: "gogo-54679",
+      storageBucket: "gogo-54679.appspot.com",
+      messagingSenderId: "91592159827",
+      appId: "1:91592159827:web:49f4caf5511b99b0a28ca6",
+      measurementId: "G-SMREC5LJ12"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+  
+    document.getElementById('reserve-btn').addEventListener('click', async function() {
+      if (currentRoute) {
+        const pickupLocation = document.getElementById('pickup-location').value;
+        const destination = document.getElementById('destination').value;
+        const departureDate = formatDate(document.getElementById('departure-date').value);
+        const departureTime = document.getElementById('departure-time').value;
+        const route = currentRoute.routes[0].legs[0];
+        const distance = route.distance.value / 1000; // Udaljenost u kilometrima
+        const duration = route.duration.text;
+        const price = distance * 1; // Cijena u KM (1 KM po kilometru)
+  
+        const userName = localStorage.getItem('userName') || 'Nepoznat korisnik'; // Koristi default vrijednost ako nije pronađeno
+    
+
+
+        try {
+            await addDoc(collection(db, 'voznja'), {
+        pickupLocation: pickupLocation,
+        destination: destination,
+        departureDate: departureDate,
+        departureTime: departureTime,
+        distance: distance.toFixed(2),
+        duration: duration,
+        price: price.toFixed(2),
+        userName: userName // Dodaj ime i prezime u Firestore dokument
+      });
+          alert('Rezervacija je potvrđena i podaci su spremljeni!');
+        } catch (error) {
+          console.error('Error adding document: ', error);
+          alert('Došlo je do greške pri spremanju podataka.');
+        }
+      }
+    });
+  
+    function formatDate(dateStr) {
+      const [day, month, year] = dateStr.split('.').map(Number);
+      return `${day.toString().padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year}`;
+    }
+  </script>
+  
+           
+
+    <script>
+
+
+
+
+     document.getElementById('userName').textContent = localStorage.getItem('userName') || 'Korisnik';
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('userName');
+    window.location.href = 'registracija.html';
+});
+
+document.getElementById('open-map').addEventListener('click', function() {
+    document.getElementById('map-container').style.display = 'block';
+});
+
+let map;
+let directionsService;
+let directionsRenderer;
+let currentRoute;
+
+function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 45.815, lng: 15.981 },
+        zoom: 12
+    });
+
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer();
+    directionsRenderer.setMap(map);
+
+    const pickupLocationInput = document.getElementById('pickup-location');
+    const destinationInput = document.getElementById('destination');
+    const departureDateInput = document.getElementById('departure-date');
+    const departureTimeInput = document.getElementById('departure-time');
+    const continueBtn = document.getElementById('continue-btn');
+    const reserveBtn = document.getElementById('reserve-btn');
+
+    pickupLocationInput.addEventListener('change', calculateAndDisplayRoute);
+    destinationInput.addEventListener('change', calculateAndDisplayRoute);
+    departureDateInput.addEventListener('change', calculateAndDisplayRoute);
+    departureTimeInput.addEventListener('change', calculateAndDisplayRoute);
+
+    continueBtn.addEventListener('click', function() {
+        if (currentRoute) {
+            document.getElementById('drive-selection').style.display = 'block';
+            continueBtn.style.display = 'none';
+
+            const route = currentRoute.routes[0].legs[0];
+            const distance = route.distance.value / 1000; // Udaljenost u kilometrima
+            const duration = route.duration.text;
+            const price = distance * 1; // Cijena u KM (1 KM po kilometru)
+
+            const departureDate = formatDate(departureDateInput.value);
+            const departureTime = departureTimeInput.value;
+
+            document.getElementById('distance').innerText = 'Udaljenost: ' + distance.toFixed(2) + ' km';
+            document.getElementById('duration').innerText = 'Trajanje puta: ' + duration;
+            document.getElementById('price').innerText = 'Cijena puta: ' + price.toFixed(2) + ' KM';
+            document.getElementById('departure-time-date').innerText = 'Vrijeme polaska i datum: ' + departureDate + ' ' + departureTime;
+
+            new google.maps.Marker({
+                position: {
+                    lat: (route.start_location.lat() + route.end_location.lat()) / 2,
+                    lng: (route.start_location.lng() + route.end_location.lng()) / 2
+                },
+                map: map,
+                icon: 'car-icon.png',
+                title: 'Automobil'
+            });
+
+            // Prikazivanje dugmeta "Rezerviši"
+            document.getElementById('reserve-btn').style.display = 'block';
+        }
+    });
+
+   
+}
+
+function formatDate(dateStr) {
+    const [day, month, year] = dateStr.split('.').map(Number);
+    return `${day.toString().padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year}`;
+}
+
+function calculateAndDisplayRoute() {
+    const pickupLocation = document.getElementById('pickup-location').value;
+    const destination = document.getElementById('destination').value;
+
+    if (pickupLocation && destination) {
+        directionsService.route({
+            origin: pickupLocation,
+            destination: destination,
+            travelMode: google.maps.TravelMode.DRIVING
+        }, (response, status) => {
+            if (status === google.maps.DirectionsStatus.OK) {
+                directionsRenderer.setDirections(response);
+                currentRoute = response;
+                document.getElementById('continue-btn').style.display = 'block';
+            } else {
+                console.error('Directions request failed due to ' + status);
+                alert('Ne možemo pronaći putanju. Provjerite unesene adrese.');
+            }
+        });
+    }
+}
+
+window.onload = initMap;
+
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+            const userName = localStorage.getItem('userName') || 'Korisnik';
+            document.getElementById('userName').textContent = userName;
+
+            // Prikazivanje dugmadi na osnovu prijavljenog korisnika
+            const logoutBtn = document.getElementById('logoutBtn');
+            const loginBtn = document.getElementById('loginBtn');
+            const registerBtn = document.getElementById('registerBtn');
+
+            if (userName) {
+                logoutBtn.style.display = 'inline';
+                loginBtn.style.display = 'none';
+                registerBtn.style.display = 'none';
+            } else {
+                logoutBtn.style.display = 'none';
+                loginBtn.style.display = 'inline';
+                registerBtn.style.display = 'inline';
+            }
+
+            // Funkcionalnost za odjavu
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userType');
+                document.getElementById('userName').textContent = '';
+                logoutBtn.style.display = 'none';
+                loginBtn.style.display = 'inline';
+                registerBtn.style.display = 'inline';
+            });
+
+            // Prikazivanje modala za prijavu
+            loginBtn.addEventListener('click', () => {
+                document.getElementById('loginModal').style.display = 'block';
+            });
+
+            // Zatvaranje modala
+            document.getElementById('closeModal').addEventListener('click', () => {
+                document.getElementById('loginModal').style.display = 'none';
+            });
+
+            // Prijava korisnika kroz modal
+            document.getElementById('modalLoginForm').addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const loginName = document.getElementById('modalLoginName').value.trim();
+                const loginPassword = document.getElementById('modalLoginPassword').value.trim();
+
+                if (!loginName || !loginPassword) {
+                    alert("Molimo unesite ime i šifru.");
+                    return;
+                }
+
+                try {
+                    const [firstName, lastName] = loginName.split(' ');
+
+                    // Provjera korisnika u odgovarajućoj kolekciji
+                    const userQuery = query(collection(db, 'korisnik'), where('firstName', '==', firstName), where('lastName', '==', lastName), where('password', '==', loginPassword));
+                    const userSnapshot = await getDocs(userQuery);
+
+                    if (!userSnapshot.empty) {
+                        localStorage.setItem('userName', loginName);
+                        localStorage.setItem('userType', 'korisnik');
+
+                        document.getElementById('userName').textContent = loginName;
+                        logoutBtn.style.display = 'inline';
+                        loginBtn.style.display = 'none';
+                        registerBtn.style.display = 'none';
+
+                        document.getElementById('loginModal').style.display = 'none';
+                    } else {
+                        alert("Neispravno ime ili šifra.");
+                    }
+                } catch (error) {
+                    console.error("Greška prilikom preuzimanja dokumenta: ", error);
+                }
+            });
+        });
+
+
+        // Funkcija za odjavu korisnika
+function odjaviSe() {
+    firebase.auth().signOut().then(() => {
+        // Sakrij ime i prezime, prikaži 'Prijavi se' i 'Registruj se'
+        document.getElementById('korisnickoIme').style.display = 'none';
+        document.getElementById('odjaviSeBtn').style.display = 'none';
+        document.getElementById('prijaviSeBtn').style.display = 'inline-block';
+        document.getElementById('registrujSeBtn').style.display = 'inline-block';
+    }).catch((error) => {
+        console.error('Greška prilikom odjave: ', error);
+    });
+}
+
+// Postavljanje početnih stanja elemenata
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        // Korisnik je prijavljen, prikaži ime, prezime i dugme za odjavu
+        document.getElementById('korisnickoIme').innerText = user.displayName;
+        document.getElementById('korisnickoIme').style.display = 'inline-block';
+        document.getElementById('odjaviSeBtn').style.display = 'inline-block';
+        document.getElementById('prijaviSeBtn').style.display = 'none';
+        document.getElementById('registerBtn').style.display = 'none';
+    } else {
+        // Korisnik nije prijavljen, prikaži 'Prijavi se' i 'Registruj se'
+        document.getElementById('korisnickoIme').style.display = 'none';
+        document.getElementById('odjaviSeBtn').style.display = 'none';
+        document.getElementById('prijaviSeBtn').style.display = 'inline-block';
+        document.getElementById('registerBtn').style.display = 'inline-block';
+    }
+});
+
+// Funkcionalnost za otvaranje modala kod klika na 'Prijavi se'
+document.getElementById('prijaviSeBtn').addEventListener('click', function() {
+    // Otvori modal (dodaj funkcionalnost otvaranja modala ovdje)
+    document.getElementById('loginModal').style.display = 'block';
+});
+
+// Funkcionalnost za preusmjeravanje na 'registracija.html' kod klika na 'Registruj se'
+// Funkcionalnost za registraciju
+registerBtn.addEventListener('click', () => {
+    window.location.href = 'registracija.html';
+});
+
+
+    </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXXJEXPULvwriS7txuJ4G-ZylTfD9ILzw"></script>
+
+
+
+
+    
+</body>
+</html>
+
+
+
+<style>
+.outline-box {
+    width: 80%; /* Postavite željenu širinu */
+    max-width: 600px; /* Opcionalno, postavite maksimalnu širinu */
+    margin: 0 auto; /* Centrirajte element ako želite */
+    padding: 20px; /* Opcionalno, dodajte padding za unutrašnje razmake */
+    border: 1px solid #ccc; /* Opcionalno, dodajte okvir za preglednost */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Opcionalno, dodajte senku */
+}
+
+
+
+    #map {
+        height: 400px;
+        width: 70%;
+        transform: translateX(20%); /* Centriramo mapu horizontalno */
+    }
+    #drive-selection {
+        display: none;
+    }
+    #continue-btn {
+        margin-top: 10px;
+    }
+    #car-icon {
+        width: 40px;
+        height: 40px;
+        background: url('car-icon.png') no-repeat center center;
+        background-size: contain;
+        display: inline-block;
+    }
+
+
+
+
+    #reserve-btn {
+    background-color: green; /* Postavite boju pozadine na zelenu */
+    color: white; /* Postavite boju teksta na bijelu */
+    border: none; /* Uklonite okvir ako je potrebno */
+    padding: 10px 20px; /* Dodajte padding */
+    border-radius: 5px; /* Dodajte zakrivljene ivice */
+    cursor: pointer; /* Dodajte pokazivač u obliku ruke */
+    position: relative; /* Omogućite pomjeranje pomoću transform */
+    display: none; /* Sakrijte dugme dok nije potrebno */
+    transform: translateX(260px); /* Pomjerite dugme udesno za 50px */
+}
+
+
+
+
+</style>

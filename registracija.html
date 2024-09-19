@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registracija</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="box" id="welcomeBox">
+            <h1>Dobrodošli na GoGo!</h1>
+            <button id="loginBtn" class="main-btn">Prijavi se</button>
+            <button id="registerBtn" class="main-btn">Registruj se</button>
+        </div>
+
+        <div id="formContainer" class="form-container">
+            <!-- Form content will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCMVaXV5cs-AISEpLRekEm_Rg-spQxadu4",
+            authDomain: "gogo-54679.firebaseapp.com",
+            projectId: "gogo-54679",
+            storageBucket: "gogo-54679.appspot.com",
+            messagingSenderId: "91592159827",
+            appId: "1:91592159827:web:49f4caf5511b99b0a28ca6",
+            measurementId: "G-SMREC5LJ12"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        document.getElementById('loginBtn').addEventListener('click', () => showLoginForm());
+        document.getElementById('registerBtn').addEventListener('click', () => showRegisterOptions());
+
+        function showLoginForm() {
+            document.getElementById('welcomeBox').style.display = 'none';
+            document.getElementById('formContainer').innerHTML = `
+                <h2>Prijavi se</h2>
+                <form id="loginForm">
+                    <label for="loginName">Ime i Prezime:</label>
+                    <input type="text" id="loginName" required><br>
+                    <label for="loginPassword">Šifra:</label>
+                    <div class="password-container">
+                        <input type="password" id="loginPassword" required>
+                        <span id="toggleLoginPassword" class="material-icons">visibility</span>
+                    </div>
+                    <button type="submit">Prijavi se</button>
+                </form>
+            `;
+            document.getElementById('loginForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const loginName = document.getElementById('loginName').value.trim();
+    const loginPassword = document.getElementById('loginPassword').value.trim();
+
+    if (!loginName || !loginPassword) {
+        alert("Molimo unesite ime i šifru.");
+        return;
+    }
+
+    try {
+        const firstName = loginName.split(' ')[0];
+        const lastName = loginName.split(' ')[1];
+
+        // Provjera korisnika u 'korisnik' kolekciji
+        const userQuery = query(collection(db, 'korisnik'), where('firstName', '==', firstName), where('lastName', '==', lastName), where('password', '==', loginPassword));
+        const userSnapshot = await getDocs(userQuery);
+
+        if (!userSnapshot.empty) {
+            localStorage.setItem('userName', loginName);
+            localStorage.setItem('userType', 'korisnik');
+            window.location.href = 'indexkor.html';
+            return;
+        }
+
+        // Provjera vozača u 'vozac' kolekciji
+        const driverQuery = query(collection(db, 'vozac'), where('firstName', '==', firstName), where('lastName', '==', lastName), where('password', '==', loginPassword));
+        const driverSnapshot = await getDocs(driverQuery);
+
+        if (!driverSnapshot.empty) {
+            localStorage.setItem('userName', loginName);
+            localStorage.setItem('userType', 'vozac');
+            window.location.href = 'indexvozac.html';
+            return;
+        }
+
+        alert("Neispravno ime ili šifra.");
+    } catch (error) {
+        console.error("Greška prilikom preuzimanja dokumenta: ", error);
+    }
+});
+
+            
+            document.getElementById('toggleLoginPassword').addEventListener('click', () => {
+                const passwordField = document.getElementById('loginPassword');
+                const icon = document.getElementById('toggleLoginPassword');
+                if (passwordField.type === 'password') {
+                    passwordField.type = 'text';
+                    icon.textContent = 'visibility_off';
+                } else {
+                    passwordField.type = 'password';
+                    icon.textContent = 'visibility';
+                }
+            });
+        }
+
+        function showRegisterOptions() {
+            document.getElementById('welcomeBox').style.display = 'none';
+            document.getElementById('formContainer').innerHTML = `
+                <h2>Registruj se</h2>
+                <button id="registerDriver" class="register-btn">Registruj se kao Vozač</button>
+                <button id="registerUser" class="register-btn">Registruj se kao Korisnik</button>
+            `;
+
+            document.getElementById('registerDriver').addEventListener('click', () => showDriverForm());
+            document.getElementById('registerUser').addEventListener('click', () => showUserForm());
+        }
+
+        function showDriverForm() {
+            document.getElementById('formContainer').innerHTML = `
+                <h2>Registracija kao Vozač</h2>
+                <form id="driverForm" enctype="multipart/form-data">
+                    <label for="firstName">Ime:</label>
+                    <input type="text" id="firstName" name="firstName" required><br>
+                    <label for="lastName">Prezime:</label>
+                    <input type="text" id="lastName" name="lastName" required><br>
+                    <label for="phone">Broj telefona:</label>
+                    <input type="text" id="phone" name="phone" required><br>
+                    <label for="address">Adresa:</label>
+                    <input type="text" id="address" name="address" required><br>
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required><br>
+                    <label for="password">Šifra:</label>
+                    <div class="password-container">
+                        <input type="password" id="password" name="password" required>
+                        <span id="togglePassword" class="material-icons">visibility</span>
+                    </div>
+                    <label for="image">Slika:</label>
+                    <input type="file" id="image" name="image" accept="image/*" required><br>
+                    <button type="submit">Prijavi se</button>
+                </form>
+            `;
+
+
+            
+            document.getElementById('driverForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+    const imageFile = formData.get('image');
+
+    if (!imageFile) {
+        alert("Molimo vas da odaberete sliku.");
+        return;
+    }
+
+    const imageRef = ref(storage, `drivers/${imageFile.name}`);
+
+    try {
+        // Upload slika
+        await uploadBytes(imageRef, imageFile);
+
+        // Dobijanje URL slike
+        const imageUrl = await getDownloadURL(imageRef);
+
+        // Spremanje podataka u Firestore
+        await addDoc(collection(db, 'vozac'), {
+            firstName: formData.get('firstName'),
+            lastName: formData.get('lastName'),
+            phone: formData.get('phone'),
+            address: formData.get('address'),
+            email: formData.get('email'),
+            password: formData.get('password'),
+            imageUrl: imageUrl
+        });
+
+        // Spremanje imena i prezimena u localStorage
+        localStorage.setItem('userName', `${formData.get('firstName')} ${formData.get('lastName')}`);
+        localStorage.setItem('userType', 'vozac'); // Tip korisnika za preusmjerenje
+
+        // Preusmjerenje na stranicu vozača
+        window.location.href = 'indexvozac.html';
+    } catch (error) {
+        console.error("Greška prilikom dodavanja dokumenta: ", error);
+    }
+});
+
+            
+            
+
+            document.getElementById('togglePassword').addEventListener('click', () => {
+                const passwordField = document.getElementById('password');
+                const icon = document.getElementById('togglePassword');
+                if (passwordField.type === 'password') {
+                    passwordField.type = 'text';
+                    icon.textContent = 'visibility_off';
+                } else {
+                    passwordField.type = 'password';
+                    icon.textContent = 'visibility';
+                }
+            });
+        }
+
+        function showUserForm() {
+            document.getElementById('formContainer').innerHTML = `
+                <h2>Registracija kao Korisnik</h2>
+                <form id="userForm" enctype="multipart/form-data">
+                    <label for="firstName">Ime:</label>
+                    <input type="text" id="firstName" name="firstName" required><br>
+                    <label for="lastName">Prezime:</label>
+                    <input type="text" id="lastName" name="lastName" required><br>
+                    <label for="phone">Broj telefona:</label>
+                    <input type="text" id="phone" name="phone" required><br>
+                    <label for="address">Adresa:</label>
+                    <input type="text" id="address" name="address" required><br>
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required><br>
+                    <label for="password">Šifra:</label>
+                    <div class="password-container">
+                        <input type="password" id="password" name="password" required>
+                        <span id="toggleUserPassword" class="material-icons">visibility</span>
+                    </div>
+                    <button type="submit">Prijavi se</button>
+                </form>
+            `;
+
+            document.getElementById('userForm').addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const formData = new FormData(event.target);
+
+                try {
+                    // Save form data to Firestore
+                    await addDoc(collection(db, 'korisnik'), {
+                        firstName: formData.get('firstName'),
+                        lastName: formData.get('lastName'),
+                        phone: formData.get('phone'),
+                        address: formData.get('address'),
+                        email: formData.get('email'),
+                        password: formData.get('password')
+                    });
+
+                    localStorage.setItem('userName', `${formData.get('firstName')} ${formData.get('lastName')}`);
+        localStorage.setItem('userType', 'korisnik'); // Set userType for redirection
+
+
+                    // Redirect to the user index page
+                    window.location.href = 'indexkor.html';
+                } catch (error) {
+                    console.error("Error adding document: ", error);
+                }
+            });
+
+            document.getElementById('toggleUserPassword').addEventListener('click', () => {
+                const passwordField = document.getElementById('password');
+                const icon = document.getElementById('toggleUserPassword');
+                if (passwordField.type === 'password') {
+                    passwordField.type = 'text';
+                    icon.textContent = 'visibility_off';
+                } else {
+                    passwordField.type = 'password';
+                    icon.textContent = 'visibility';
+                }
+            });
+        }
+
+
+        // Nakon uspješne prijave
+localStorage.setItem('userId', userSnapshot.docs[0].id); // ili ID koji se koristi
+localStorage.setItem('userType', 'korisnik'); // ili 'vozac' za vozača
+
+    </script>
+</body>
+</html>
